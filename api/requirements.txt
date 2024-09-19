@@ -1,0 +1,3 @@
+flask  # For the lightweight framework
+flask-smorest  # 
+python-dotenv  # automatically detect .flaskenv file
