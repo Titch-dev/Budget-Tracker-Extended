@@ -1,9 +1,10 @@
-import uuid, datetime
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from sqlalchemy.exc import SQLAlchemyError
 
-from db import recurrents
+from db import db
+from models import RecurrentModel
 from schemas import RecurrentSchema, RecurrentUpdateSchema
 
 blp = Blueprint("Recurrents", __name__, description="Operations on Recurrence")
@@ -12,30 +13,36 @@ blp = Blueprint("Recurrents", __name__, description="Operations on Recurrence")
 class Recurrent(MethodView):
     @blp.response(200, RecurrentSchema)
     def get(self, rec_id):
-        try:
-            return recurrents[rec_id]
-        except KeyError:
-            abort(404, message="Recurrence not found")
+        recurrence = RecurrentModel.query.get_or_404(rec_id)
+        return recurrence
     
+
     @blp.arguments(RecurrentUpdateSchema)
     @blp.response(201, RecurrentSchema)
     def put(self, rec_data, rec_id):
-        if rec_data["amount"] < 0:
-            abort(400, message="Amount cannot be less than 0")
+        recurrence = RecurrentModel.query.get(rec_id)
 
-        try:
-            recurrance = recurrents[rec_id]
-            recurrance |= rec_data
-            return recurrance
-        except KeyError:
-            abort(404, message="Recurrence not found")
+        if recurrence:
+            recurrence.name = rec_data["name"]
+            recurrence.description = rec_data["description"]
+            recurrence.frequency = rec_data["frequency"]
+            recurrence.type = rec_data["type"]
+            recurrence.amount = rec_data["amount"]
+            recurrence.effect_date = rec_data["effect_date"]
+            recurrence.category_id = rec_data["category_id"]
+        else:
+            recurrence = RecurrentModel(id=rec_id, **rec_data)
+
+        db.session.add(recurrence)
+        db.session.commit()
+
+        return recurrence
+    
     
     def delete(self, rec_id):
-        try:
-            del recurrents[rec_id]
-            return {"message": "Recurrence deleted"}
-        except KeyError:
-            abort(404, "Recurrance not found")
+        recurrence = RecurrentModel.query.get_or_404(rec_id)
+        raise NotImplementedError("Deleting recurrence is not implemented")
+
 
 @blp.route("/recurrent")
 class RecurrentList(MethodView):
@@ -43,12 +50,16 @@ class RecurrentList(MethodView):
     def get(self):
         return recurrents.values()
     
+    
     @blp.arguments(RecurrentSchema)
     @blp.response(201, RecurrentSchema)
     def post(self, rec_data):
-        rec_id = uuid.uuid4().hex
-        rec_created = datetime.datetime.now()
-        recurrence = {**rec_data, "id":rec_id, "created": rec_created}
-        recurrents[rec_id] = recurrence
+        recurrence = RecurrentModel(**rec_data)
+
+        try:
+            db.session.add(recurrence)
+            db.session.commit()
+        except SQLAlchemyError:
+            abort(500, message="Error whilst inserting recurrent into database")
         
         return recurrence

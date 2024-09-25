@@ -1,9 +1,10 @@
-import uuid, datetime
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from sqlalchemy.exc import SQLAlchemyError
 
-from db import revenues
+from db import db
+from models import RevenueModel
 from schemas import RevenueSchema, RevenueUpdateSchema
 
 blp = Blueprint("revenues", __name__, description="Operations on revenues")
@@ -12,27 +13,30 @@ blp = Blueprint("revenues", __name__, description="Operations on revenues")
 class Revenue(MethodView):
     @blp.response(200, RevenueSchema)
     def get(self, rev_id):
-        try:
-            return revenues[rev_id], 200
-        except KeyError:
-            abort(404, message="Revenue not found")
+        revenue = RevenueModel.query.get_or_404(rev_id)
+        return revenue
     
     @blp.arguments(RevenueUpdateSchema)
     @blp.response(201, RevenueSchema)
     def put(self, rev_data, rev_id):
-        try:
-            revenue = revenues[rev_id]
-            revenue |= rev_data
-            return revenue
-        except KeyError:
-            abort(404, message="Revenue not found")
+        revenue = RevenueModel.query.get(rev_id)
+        if revenue:
+            revenue.name = rev_data["name"]
+            revenue.description = rev_data["description"]
+            revenue.type = rev_data["type"]
+            revenue.amount = rev_data["amount"]
+            revenue.category_id = rev_data["category_id"]
+        else:
+            revenue = RevenueModel(id=rev_id, **rev_data)
+
+        db.session.add(revenue)
+        db.session.commit()
+
+        return revenue
     
     def delete(self, rev_id):
-        try:
-            del revenues[rev_id]
-            return {"message": "Revenue deleted"}
-        except KeyError:
-            abort(404, message="Revenue not found")
+        revenue = RevenueModel.query.get_or_404(rev_id)
+        raise NotImplementedError("Deleting a revenue is not implemented.")
 
 @blp.route("/revenue")
 class RevenueList(MethodView):
@@ -43,10 +47,12 @@ class RevenueList(MethodView):
     @blp.arguments(RevenueSchema)
     @blp.response(201, RevenueSchema)
     def post(self, rev_data):
-        # TODO: validation that the information is as expected
-        rev_id = uuid.uuid4().hex
-        rev_created = datetime.datetime.now()
-        revenue = {**rev_data, "id": rev_id, "created": rev_created}
-        revenues[rev_id] = revenue
+        revenue = RevenueModel(**rev_data)
+
+        try:
+            db.session.add(revenue)
+            db.session.commit()
+        except SQLAlchemyError:
+            abort(500, message="Error whilst inserting revenue into database")
 
         return revenue

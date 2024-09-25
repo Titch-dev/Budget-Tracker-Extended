@@ -1,4 +1,6 @@
 import enum
+from datetime import datetime
+
 from db import db
 
 class revenue_enum(str, enum.Enum):
@@ -10,7 +12,7 @@ class frequency_enum(str, enum.Enum):
     daily = "daily"
     weekly = "weekly"
     monthly = "monthly"
-    annualy = "annually"
+    annually = "annually"
 
 class RecurrentModel(db.Model):
     __tablename__ = "recurrents"
@@ -22,6 +24,8 @@ class RecurrentModel(db.Model):
     type = db.Column(db.Enum(revenue_enum), unique=False, nullable=False)
     amount = db.Column(db.Float(precision=2), unique=False, default=0.00)
     effect_date = db.Column(db.Date(), unique=False, nullable=False)
-    created = db.Column(db.DateTime(), unique=False, nullable=False)
-    account_id = db.Column(db.Integer(), foreign_key=True, unique=False, nullable=False)
-    category_id = db.Column(db.Integer(), foreign_key=True, unique=False, nullable=True)
+    created = db.Column(db.DateTime(), unique=False, default=datetime.now())
+    account_id = db.Column(db.Integer(), db.ForeignKey("accounts.id"), unique=False, nullable=False)
+    category_id = db.Column(db.Integer(), db.ForeignKey("categories.id"), unique=False, nullable=True)
+    account = db.relationship("AccountModel", back_populates="recurrents")
+    category = db.relationship("CategoryModel", back_populates="recurrents")

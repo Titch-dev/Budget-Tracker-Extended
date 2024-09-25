@@ -5,4 +5,4 @@ services:
     ports:
       - "5005:5000"
     volumes:
-      - ./api:/app:ro
+      - ./api:/app:rw

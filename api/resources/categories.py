@@ -2,8 +2,10 @@ import uuid, datetime
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from sqlalchemy.exc import SQLAlchemyError
 
-from db import categories
+from db import db
+from models import CategoryModel
 from schemas import CategorySchema, CategoryUpdateSchema
 
 blp = Blueprint("categories", __name__, description="Operations on categories")
@@ -12,27 +14,30 @@ blp = Blueprint("categories", __name__, description="Operations on categories")
 class Category(MethodView):
     @blp.response(200, CategorySchema)
     def get(self, cat_id):
-        try:
-            return categories[cat_id], 200
-        except KeyError:
-            abort(404, message="Category not found")
+        category = CategoryModel.query.get_or_404(cat_id)
+        return category
     
     @blp.arguments(CategoryUpdateSchema)
     @blp.response(201, CategorySchema)
     def put(self, cat_data, cat_id):
-        try:
-            category = categories[cat_id]
-            category |= cat_data
-            return category
-        except KeyError:
-            abort(404, message="Category not found")
+        category = CategoryModel.query.get(cat_id)
+
+        if category:
+            category.name = cat_data["name"]
+            category.description = cat_data["description"]
+            category.budget = cat_data["budget"]
+        else:
+            category = CategoryModel(id=cat_id, **cat_data)
+
+        db.session.add(category)
+        db.session.commit()
+
+        return category
     
     def delete(self, cat_id):
-        try:
-            del categories[cat_id]
-            return {"message": "Category deleted"}
-        except KeyError:
-            abort(404, message="Category not found")
+        category = CategoryModel.query.get_or_404(cat_id)
+        raise NotImplementedError("Deleting a category is not implemeneted")
+
 
 
 @blp.route("/category")
@@ -44,13 +49,12 @@ class CategoryList(MethodView):
     @blp.arguments(CategorySchema)
     @blp.response(201, CategorySchema)
     def post(self, cat_data):
-        # TODO: validation that the information is as expected
-        for category in categories.values():
-            if category["name"] == cat_data["name"]:
-                abort(400, message="Category name already exists")
-        
-        cat_id = uuid.uuid4().hex
-        cat_created = datetime.datetime.now()
-        category = {**cat_data, "id": cat_id, "created": cat_created}
-        categories[cat_id] = category
+        category = CategoryModel(**cat_data)
+
+        try:
+            db.session.add(category)
+            db.session.commit()
+        except SQLAlchemyError:
+            abort(500, message="Error when inserting category")
+
         return category

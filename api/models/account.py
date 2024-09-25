@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from db import db
 
 class AccountModel(db.Model):
@@ -8,6 +10,11 @@ class AccountModel(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), unique=False, nullable=False)
     balance = db.Column(db.Float(precision=2), unique=False, default=0.00)
-    created = db.Column(db.DateTime(), unique=False, nullable=False)
+    created = db.Column(db.DateTime(), unique=False, default=datetime.now())
     last_login = db.Column(db.DateTime(), unique=False, nullable=True)
     intro_done = db.Column(db.Boolean(), unique=False, default=False)
+
+    categories = db.relationship("CategoryModel", back_populates="account", lazy="dynamic")
+    goals = db.relationship("GoalModel", back_populates="account", lazy="dynamic")
+    recurrents = db.relationship("RecurrentModel", back_populates="account", lazy="dynamic")
+    revenues = db.relationship("RevenueModel", back_populates="account", lazy="dynamic")
