@@ -10,6 +10,7 @@ blp = Blueprint("goals", __name__, description="Operations on Goals")
 
 @blp.route("/goals/<string:goal_id>")
 class Goal(MethodView):
+    @blp.response(200, GoalsSchema)
     def get(self, goal_id):
         try:
             return goals[goal_id]
@@ -17,11 +18,12 @@ class Goal(MethodView):
             abort(404, message="Goal not found")
 
     @blp.arguments(GoalUpdateSchema)
+    @blp.response(201, GoalsSchema)
     def put(self, goal_data, goal_id):
         try:
             goal = goals[goal_id]
             goal |= goal_data
-            return {"message": "Goal updated"}
+            return goal
         except KeyError:
             abort(404, message="Goal not found")
     
@@ -34,10 +36,12 @@ class Goal(MethodView):
 
 @blp.route("/goals")
 class GoalList(MethodView):
+    @blp.response(200, GoalsSchema(many=True))
     def get(self):
-        return {"goals": list(goals.items())}
+        return goals.values()
 
     @blp.arguments(GoalsSchema)
+    @blp.response(201, GoalsSchema)
     def post(self, goal_data):
         # TODO: validation that the information is as expected
         for goal in goals.values():
@@ -53,4 +57,4 @@ class GoalList(MethodView):
         goal = {**goal_data, "id": goal_id, "created": goal_created}
         goals[goal_id] = goal
 
-        return goal, 201
+        return goal

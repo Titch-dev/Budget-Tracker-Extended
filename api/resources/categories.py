@@ -10,6 +10,7 @@ blp = Blueprint("categories", __name__, description="Operations on categories")
 
 @blp.route("/category/<string:cat_id>")
 class Category(MethodView):
+    @blp.response(200, CategorySchema)
     def get(self, cat_id):
         try:
             return categories[cat_id], 200
@@ -17,11 +18,12 @@ class Category(MethodView):
             abort(404, message="Category not found")
     
     @blp.arguments(CategoryUpdateSchema)
+    @blp.response(201, CategorySchema)
     def put(self, cat_data, cat_id):
         try:
             category = categories[cat_id]
             category |= cat_data
-            return {"message": "Category updated"}
+            return category
         except KeyError:
             abort(404, message="Category not found")
     
@@ -35,10 +37,12 @@ class Category(MethodView):
 
 @blp.route("/category")
 class CategoryList(MethodView):
+    @blp.response(200, CategorySchema(many=True))
     def get(self):
-        return {"categorys": list(categories.items())}
+        return categories.values()
     
     @blp.arguments(CategorySchema)
+    @blp.response(201, CategorySchema)
     def post(self, cat_data):
         # TODO: validation that the information is as expected
         for category in categories.values():
@@ -49,4 +53,4 @@ class CategoryList(MethodView):
         cat_created = datetime.datetime.now()
         category = {**cat_data, "id": cat_id, "created": cat_created}
         categories[cat_id] = category
-        return category, 201
+        return category

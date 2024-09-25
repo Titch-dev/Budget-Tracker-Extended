@@ -1,3 +1,5 @@
 flask  # For the lightweight framework
 flask-smorest  # 
 python-dotenv  # automatically detect .flaskenv file
+sqlalchemy  # Object Relational Mapper
+flask-sqlalchemy  # Additional actions for SQLalchemy

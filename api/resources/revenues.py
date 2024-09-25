@@ -10,6 +10,7 @@ blp = Blueprint("revenues", __name__, description="Operations on revenues")
 
 @blp.route("/revenue/<string:rev_id>")
 class Revenue(MethodView):
+    @blp.response(200, RevenueSchema)
     def get(self, rev_id):
         try:
             return revenues[rev_id], 200
@@ -17,11 +18,12 @@ class Revenue(MethodView):
             abort(404, message="Revenue not found")
     
     @blp.arguments(RevenueUpdateSchema)
+    @blp.response(201, RevenueSchema)
     def put(self, rev_data, rev_id):
         try:
             revenue = revenues[rev_id]
             revenue |= rev_data
-            return {"message": "Revenue updated"}
+            return revenue
         except KeyError:
             abort(404, message="Revenue not found")
     
@@ -34,10 +36,12 @@ class Revenue(MethodView):
 
 @blp.route("/revenue")
 class RevenueList(MethodView):
+    @blp.response(200, RevenueSchema(many=True))
     def get(self):
-        return {"revenues": list(revenues.items())}
+        return revenues.values()
     
     @blp.arguments(RevenueSchema)
+    @blp.response(201, RevenueSchema)
     def post(self, rev_data):
         # TODO: validation that the information is as expected
         rev_id = uuid.uuid4().hex
@@ -45,4 +49,4 @@ class RevenueList(MethodView):
         revenue = {**rev_data, "id": rev_id, "created": rev_created}
         revenues[rev_id] = revenue
 
-        return revenue, 201
+        return revenue
