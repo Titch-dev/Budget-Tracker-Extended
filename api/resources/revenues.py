@@ -36,13 +36,15 @@ class Revenue(MethodView):
     
     def delete(self, rev_id):
         revenue = RevenueModel.query.get_or_404(rev_id)
-        raise NotImplementedError("Deleting a revenue is not implemented.")
+        db.session.delete(revenue)
+        db.session.commit()
+        return {"message": "Revenue successfully deleted"}
 
 @blp.route("/revenue")
 class RevenueList(MethodView):
     @blp.response(200, RevenueSchema(many=True))
     def get(self):
-        return revenues.values()
+        return RevenueModel.query.all()
     
     @blp.arguments(RevenueSchema)
     @blp.response(201, RevenueSchema)

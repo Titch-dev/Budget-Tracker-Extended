@@ -25,7 +25,13 @@ class RecurrentModel(db.Model):
     amount = db.Column(db.Float(precision=2), unique=False, default=0.00)
     effect_date = db.Column(db.Date(), unique=False, nullable=False)
     created = db.Column(db.DateTime(), unique=False, default=datetime.now())
-    account_id = db.Column(db.Integer(), db.ForeignKey("accounts.id"), unique=False, nullable=False)
-    category_id = db.Column(db.Integer(), db.ForeignKey("categories.id"), unique=False, nullable=True)
+    account_id = db.Column(db.Integer(),
+                           db.ForeignKey("accounts.id"),
+                           unique=False,
+                           nullable=False)
+    category_id = db.Column(db.Integer(),
+                            db.ForeignKey("categories.id"),
+                            unique=False,
+                            nullable=True)
     account = db.relationship("AccountModel", back_populates="recurrents")
     category = db.relationship("CategoryModel", back_populates="recurrents")

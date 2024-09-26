@@ -41,16 +41,18 @@ class Recurrent(MethodView):
     
     def delete(self, rec_id):
         recurrence = RecurrentModel.query.get_or_404(rec_id)
-        raise NotImplementedError("Deleting recurrence is not implemented")
+        db.session.delete(recurrence)
+        db.session.commit()
+        return {"message": "Recurrence successfully deleted"}
 
 
 @blp.route("/recurrent")
 class RecurrentList(MethodView):
     @blp.response(200, RecurrentSchema(many=True))
     def get(self):
-        return recurrents.values()
+        return RecurrentModel.query.all()
     
-    
+
     @blp.arguments(RecurrentSchema)
     @blp.response(201, RecurrentSchema)
     def post(self, rec_data):

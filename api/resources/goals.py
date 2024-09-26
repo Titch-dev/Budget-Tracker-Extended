@@ -46,7 +46,7 @@ class Goal(MethodView):
 class GoalList(MethodView):
     @blp.response(200, GoalsSchema(many=True))
     def get(self):
-        return goals.values()
+        return GoalModel.query.all()
 
 
     @blp.arguments(GoalsSchema)

@@ -34,14 +34,16 @@ class Account(MethodView):
 
     def delete(self, acc_id):
         account = AccountModel.query.get_or_404(acc_id)
-        raise NotImplementedError("Deleting an account is not implemented.")
+        db.session.delete(account)
+        db.session.commit()
+        return {"message": "Account successfully deleted"}
 
 
 @blp.route("/account")
 class AccountList(MethodView):
     @blp.response(200, AccountSchema(many=True))
     def get(self):
-        return accounts.values()
+        return AccountModel.query.all()
 
     @blp.arguments(AccountSchema)
     @blp.response(201, AccountSchema)

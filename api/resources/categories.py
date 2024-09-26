@@ -36,7 +36,9 @@ class Category(MethodView):
     
     def delete(self, cat_id):
         category = CategoryModel.query.get_or_404(cat_id)
-        raise NotImplementedError("Deleting a category is not implemeneted")
+        db.session.delete(category)
+        db.session.commit()
+        return {"message": "Category successfully deleted"}
 
 
 
@@ -44,7 +46,7 @@ class Category(MethodView):
 class CategoryList(MethodView):
     @blp.response(200, CategorySchema(many=True))
     def get(self):
-        return categories.values()
+        return CategoryModel.query.all()
     
     @blp.arguments(CategorySchema)
     @blp.response(201, CategorySchema)

@@ -13,8 +13,19 @@ class AccountModel(db.Model):
     created = db.Column(db.DateTime(), unique=False, default=datetime.now())
     last_login = db.Column(db.DateTime(), unique=False, nullable=True)
     intro_done = db.Column(db.Boolean(), unique=False, default=False)
-
-    categories = db.relationship("CategoryModel", back_populates="account", lazy="dynamic")
-    goals = db.relationship("GoalModel", back_populates="account", lazy="dynamic")
-    recurrents = db.relationship("RecurrentModel", back_populates="account", lazy="dynamic")
-    revenues = db.relationship("RevenueModel", back_populates="account", lazy="dynamic")
+    categories = db.relationship("CategoryModel", 
+                                 back_populates="account", 
+                                 lazy="dynamic", 
+                                 cascade="all, delete")
+    goals = db.relationship("GoalModel", 
+                            back_populates="account", 
+                            lazy="dynamic",
+                            cascade="all, delete")
+    recurrents = db.relationship("RecurrentModel",
+                                 back_populates="account",
+                                 lazy="dynamic",
+                                 cascade="all, delete")
+    revenues = db.relationship("RevenueModel", 
+                               back_populates="account", 
+                               lazy="dynamic",
+                               cascade="all, delete")

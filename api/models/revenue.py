@@ -16,7 +16,13 @@ class RevenueModel(db.Model):
     type = db.Column(db.Enum(revenue_enum), unique=False, nullable=False)
     amount = db.Column(db.Float(precision=2), unique=False, default=0.00)
     created = db.Column(db.DateTime(), unique=False, default=datetime.now())
-    account_id = db.Column(db.Integer(), db.ForeignKey("accounts.id"), unique=False, nullable=False)
-    category_id = db.Column(db.Integer(), db.ForeignKey("categories.id"), unique=False, nullable=True)
+    account_id = db.Column(db.Integer(), 
+                           db.ForeignKey("accounts.id"),
+                           unique=False,
+                           nullable=False)
+    category_id = db.Column(db.Integer(),
+                            db.ForeignKey("categories.id"),
+                            unique=False,
+                            nullable=True)
     account = db.relationship("AccountModel", back_populates="revenues")
     category = db.relationship("CategoryModel", back_populates="revenues")
