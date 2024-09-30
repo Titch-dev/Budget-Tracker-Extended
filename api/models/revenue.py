@@ -24,5 +24,10 @@ class RevenueModel(db.Model):
                             db.ForeignKey("categories.id"),
                             unique=False,
                             nullable=True)
+    recurrent_id = db.Column(db.Integer(),
+                             db.ForeignKey("recurrents.id"),
+                             unique=False,
+                             nullable=True)
     account = db.relationship("AccountModel", back_populates="revenues")
     category = db.relationship("CategoryModel", back_populates="revenues")
+    recurrent = db.relationship("RecurrentModel", back_populates="revenues")

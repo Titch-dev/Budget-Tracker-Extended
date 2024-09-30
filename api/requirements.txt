@@ -3,3 +3,5 @@ flask-smorest  #
 python-dotenv  # automatically detect .flaskenv file
 sqlalchemy  # Object Relational Mapper
 flask-sqlalchemy  # Additional actions for SQLalchemy
+flask-jwt-extended  # For user authentication tokens
+passlib  # For hashing passwords in the database

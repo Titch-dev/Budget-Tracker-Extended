@@ -33,5 +33,13 @@ class RecurrentModel(db.Model):
                             db.ForeignKey("categories.id"),
                             unique=False,
                             nullable=True)
+    goal_id = db.Column(db.Integer(),
+                        db.ForeignKey("goals.id"),
+                        unique=False,
+                        nullable=True)
     account = db.relationship("AccountModel", back_populates="recurrents")
     category = db.relationship("CategoryModel", back_populates="recurrents")
+    goal = db.relationship("GoalModel", back_populates="recurrents")
+    revenues = db.relationship("RevenueModel", 
+                               back_populates="recurrent", 
+                               lazy="dynamic")
